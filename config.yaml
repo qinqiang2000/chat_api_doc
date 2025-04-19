@@ -1,0 +1,28 @@
+assistants:
+  standard:
+    id: "asst_jeHiEoUgYxd2oOjxZyqIP4YR"
+    title: "标准版API Chatbot"
+    icon: "🤖"
+    description: "🚀 A chatbot powered by 发票云"
+    llm_txt_url: "https://open-standard.piaozone.com/llms.txt"
+  
+  ultimate:
+    id: "asst_TTZaGdtxROyACaoNCCSOigSw"
+    title: "旗舰版API Chatbot"
+    icon: "🤖"
+    description: "🚀 A chatbot powered by 发票云"
+    llm_txt_url: "https://open.piaozone.com/llms.txt"
+
+  ai:
+    id: "asst_e8YKjgA3MqAb6HfPUPtglBrI"
+    title: "智能特性API Chatbot"
+    icon: "🤖"
+    description: "🚀 A chatbot powered by 发票云"
+    llm_txt_url: "https://open-ai.piaozone.com/llms.txt" 
+  
+  test:
+    id: "asst_p4dOO2s1LElJMoU7usSj9qar"
+    title: "API Chatbot"
+    icon: "🤖"
+    description: "🚀 A chatbot powered by 发票云"
+    llm_txt_url: "https://piaozone-open.apifox.cn/llms.txt"   

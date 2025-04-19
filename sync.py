@@ -181,6 +181,7 @@ def sync_assistant_files(client: OpenAI, assistant: Dict[str, Any]) -> None:
     
     try:
         # Setup UI
+        back = st.empty()
         status, log_container = setup_ui_containers()
         
         # Create temporary directory
@@ -205,7 +206,7 @@ def sync_assistant_files(client: OpenAI, assistant: Dict[str, Any]) -> None:
         current_type = st.query_params.get("type")
         if current_type:
             chat_url = f"/?type={current_type}"
-            st.markdown(f"[返回聊天页面]({chat_url})")
+            back.markdown(f"[返回聊天页面]({chat_url})")
 
     except Exception as e:
         status.error(f"Error updating files: {str(e)}")

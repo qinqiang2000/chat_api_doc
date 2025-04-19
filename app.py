@@ -4,26 +4,11 @@ from openai import OpenAI
 from openai import AssistantEventHandler
 from typing_extensions import override
 import os
-import logging
 from dotenv import load_dotenv
 from sync import sync_assistant_files
-from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
+import yaml
 
-# Configure logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Create console handler with a higher log level
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# Create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-
-# Add the handlers to the logger
-logger.addHandler(ch)
 
 # Load environment variables
 load_dotenv()
@@ -31,38 +16,16 @@ load_dotenv()
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), project="proj_jiG8eccaCUMs4uKfXqUouCeN")
 
-# Initialize scheduler
-scheduler = BackgroundScheduler()
-scheduler.start()
 
-def sync_all_assistants():
-    """Sync all assistants"""
-    logger.info("Running daily sync for all assistants...")
-    for assistant_type, assistant in ASSISTANTS.items():
-        logger.info(f"Syncing {assistant_type} assistant...")
-        sync_assistant_files(client, assistant)
-    logger.info("Daily sync completed")
+# Load assistant configurations from YAML file
+def load_config():
+    config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = yaml.safe_load(f)
+    return config.get('assistants', {})
 
-# Schedule sync task to run at 23:00 every day
-scheduler.add_job(sync_all_assistants, 'cron', hour=22, minute=38)
-
-# Assistant configurations
-ASSISTANTS = {
-    "standard": {
-        "id": "asst_jeHiEoUgYxd2oOjxZyqIP4YR",  # 替换为标准版助手的 ID
-        "title": "标准版API Chatbot",
-        "icon": "🤖",
-        "description": "🚀 A chatbot powered by 发票云",
-        "llm_txt_url": "https://open-standard.piaozone.com/llms.txt"
-    },
-    "ultimate": {
-        "id": "asst_TTZaGdtxROyACaoNCCSOigSw",  # 替换为旗舰版助手的 ID
-        "title": "旗舰版API Chatbot",
-        "icon": "🤖",
-        "description": "🚀 A chatbot powered by 发票云",
-        "llm_txt_url": "https://open.piaozone.com/llms.txt"
-    }
-}
+# Load assistants configuration
+ASSISTANTS = load_config()
 
 class StreamHandler(AssistantEventHandler):
     def __init__(self, message_placeholder):
