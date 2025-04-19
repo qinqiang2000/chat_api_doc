@@ -184,8 +184,7 @@ def sync_assistant_files(client: OpenAI, assistant: Dict[str, Any]) -> None:
         status, log_container = setup_ui_containers()
         
         # Create temporary directory
-        # temp_dir = create_temp_directory(assistant.get("id", "unknown"))
-        temp_dir = "tmp/sync_asst_TTZaGdtxROyACaoNCCSOigSw_1lruaj"
+        temp_dir = create_temp_directory(assistant.get("id", "unknown"))
         log_container.info(f"Created temporary directory: {temp_dir}")
         
         # Check llm.txt URL
@@ -195,7 +194,7 @@ def sync_assistant_files(client: OpenAI, assistant: Dict[str, Any]) -> None:
             return
 
         # Download markdown files
-        # download_markdown_files(llm_txt_url, temp_dir, status, log_container)
+        download_markdown_files(llm_txt_url, temp_dir, status, log_container)
         
         # Update assistant files
         update_assistant_files(client, assistant["id"], temp_dir, status, log_container)
