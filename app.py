@@ -44,7 +44,7 @@ def sync_all_assistants():
     logger.info("Daily sync completed")
 
 # Schedule sync task to run at 23:00 every day
-scheduler.add_job(sync_all_assistants, 'cron', hour=22, minute=29)
+scheduler.add_job(sync_all_assistants, 'cron', hour=22, minute=31)
 
 # Assistant configurations
 ASSISTANTS = {
