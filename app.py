@@ -4,8 +4,26 @@ from openai import OpenAI
 from openai import AssistantEventHandler
 from typing_extensions import override
 import os
+import logging
 from dotenv import load_dotenv
 from sync import sync_assistant_files
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+
+# Configure logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(ch)
 
 # Load environment variables
 load_dotenv()
@@ -13,10 +31,25 @@ load_dotenv()
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), project="proj_jiG8eccaCUMs4uKfXqUouCeN")
 
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+def sync_all_assistants():
+    """Sync all assistants"""
+    logger.info("Running daily sync for all assistants...")
+    for assistant_type, assistant in ASSISTANTS.items():
+        logger.info(f"Syncing {assistant_type} assistant...")
+        sync_assistant_files(client, assistant)
+    logger.info("Daily sync completed")
+
+# Schedule sync task to run at 23:00 every day
+scheduler.add_job(sync_all_assistants, 'cron', hour=22, minute=29)
+
 # Assistant configurations
 ASSISTANTS = {
     "standard": {
-        "id": "your_standard_assistant_id",  # 替换为标准版助手的 ID
+        "id": "asst_jeHiEoUgYxd2oOjxZyqIP4YR",  # 替换为标准版助手的 ID
         "title": "标准版API Chatbot",
         "icon": "🤖",
         "description": "🚀 A chatbot powered by 发票云",
@@ -98,7 +131,8 @@ def main():
             st.markdown(message["content"])
 
     # Chat input
-    if prompt := st.chat_input("请输入您的问题..."):
+    prompt = st.chat_input("请输入您的问题...")
+    if prompt:
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
         
