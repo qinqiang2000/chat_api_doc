@@ -8,7 +8,32 @@ from dotenv import load_dotenv
 from sync import sync_assistant_files
 from datetime import datetime
 import yaml
+import logging
+from pathlib import Path
+from streamlit_feedback import streamlit_feedback
 
+# Set up logging
+def setup_logging():
+    # Create logs directory if it doesn't exist
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    # Create log file with current date
+    log_file = log_dir / f"chat_{datetime.now().strftime('%Y-%m-%d')}.log"
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    return logging.getLogger(__name__)
+
+# Initialize logger
+logger = setup_logging()
 
 # Load environment variables
 load_dotenv()
@@ -54,6 +79,13 @@ class StreamHandler(AssistantEventHandler):
                     if output.type == "logs":
                         self.message_placeholder.markdown(f"\n{output.logs}")
 
+def handle_feedback(feedback):
+    """Handle feedback from users"""
+    feedback_type = feedback.get("type")
+    score = feedback.get("score")
+    text = feedback.get("text", "")
+    logger.info(f"Received feedback - Type: {feedback_type}, Score: {score}, Text: {text}")
+
 def main():
     # Get assistant type from URL parameters
     assistant_type = st.query_params.get("type")  # Default to ultimate if not specified
@@ -66,9 +98,13 @@ def main():
         
     # Get assistant config
     assistant = ASSISTANTS[assistant_type]
+    
+    # Log assistant type and sync status
+    logger.info(f"Session started with assistant type: {assistant_type}")
 
     # Handle file sync if requested
     if sync:
+        logger.info("Syncing assistant files")
         sync_assistant_files(client, assistant)
         return
 
@@ -77,6 +113,7 @@ def main():
         st.session_state.messages = []
     if "thread" not in st.session_state:
         st.session_state.thread = client.beta.threads.create()
+        logger.info(f"New thread created with ID: {st.session_state.thread.id}")
 
     # Set page config
     st.set_page_config(
@@ -89,13 +126,23 @@ def main():
     st.caption(assistant["description"])
 
     # Display chat messages
-    for message in st.session_state.messages:
+    for idx, message in enumerate(st.session_state.messages):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            # Add feedback component for assistant messages
+            if message["role"] == "assistant":
+                streamlit_feedback(
+                    feedback_type="thumbs",
+                    key=f"feedback_{idx}",  # Add unique key based on message index
+                    on_submit=handle_feedback
+                )
 
     # Chat input
     prompt = st.chat_input("请输入您的问题...")
     if prompt:
+        # Log user input
+        logger.info(f"User input: {prompt}")
+        
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
         
@@ -127,6 +174,16 @@ def main():
                 
             # Remove the cursor
             message_placeholder.markdown(handler.full_response)
+            
+            # Add feedback component for the new response
+            streamlit_feedback(
+                feedback_type="thumbs",
+                key=f"feedback_{len(st.session_state.messages)}",  # Add unique key based on new message index
+                on_submit=handle_feedback
+            )
+            
+            # Log assistant response
+            logger.info(f"Assistant response: {handler.full_response}")
             
             # Add the complete response to chat history
             st.session_state.messages.append(
