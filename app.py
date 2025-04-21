@@ -123,7 +123,7 @@ def main():
 
     # Title and description
     st.title(f"{assistant['icon']} {assistant['title']}")
-    st.caption(assistant["description"])
+    st.caption(assistant["description"] + " 我也可能会犯错。请核查重要信息。")
 
     # Display chat messages
     for idx, message in enumerate(st.session_state.messages):
